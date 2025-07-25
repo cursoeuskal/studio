@@ -47,6 +47,7 @@ interface NoteSidebarProps {
   onNewFolder: (name: string) => void;
   onSelectFolder: (id: string | null) => void;
   onDeleteFolder: (id: string) => void;
+  onMoveNoteToFolder: (noteId: string, folderId: string | null) => void;
 }
 
 export function NoteSidebar({
@@ -62,10 +63,12 @@ export function NoteSidebar({
   onSelectTag,
   onNewFolder,
   onSelectFolder,
-  onDeleteFolder
+  onDeleteFolder,
+  onMoveNoteToFolder
 }: NoteSidebarProps) {
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -81,6 +84,25 @@ export function NoteSidebar({
       setShowNewFolderDialog(false);
     }
   };
+  
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, noteId: string) => {
+    e.dataTransfer.setData('noteId', noteId);
+    setDraggedNoteId(noteId);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, folderId: string | null) => {
+    e.preventDefault();
+    const noteId = e.dataTransfer.getData('noteId');
+    if (noteId) {
+      onMoveNoteToFolder(noteId, folderId);
+    }
+    setDraggedNoteId(null);
+  };
+
 
   return (
     <div className="flex h-full flex-col bg-card text-card-foreground border-r">
@@ -106,9 +128,12 @@ export function NoteSidebar({
              <div className="space-y-1">
                 <div
                     onClick={() => onSelectFolder(null)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, null)}
                     className={cn(
                     'group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors text-sm font-medium',
-                    !selectedFolderId ? 'bg-primary/10' : 'hover:bg-muted/50'
+                    !selectedFolderId ? 'bg-primary/10' : 'hover:bg-muted/50',
+                    draggedNoteId && !selectedFolderId && 'bg-primary/20'
                     )}
                 >
                     <span>All Notes</span>
@@ -117,9 +142,12 @@ export function NoteSidebar({
                     <div
                         key={folder.id}
                         onClick={() => onSelectFolder(folder.id)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, folder.id)}
                         className={cn(
                             'group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors text-sm',
-                            selectedFolderId === folder.id ? 'bg-primary/10 font-semibold' : 'hover:bg-muted/50'
+                            selectedFolderId === folder.id ? 'bg-primary/10 font-semibold' : 'hover:bg-muted/50',
+                            draggedNoteId && selectedFolderId === folder.id && 'bg-primary/20'
                         )}
                     >
                         <span className="truncate pr-2 flex-1">{folder.name}</span>
@@ -182,10 +210,13 @@ export function NoteSidebar({
             notes.map((note) => (
               <div
                 key={note.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, note.id)}
                 onClick={() => onSelectNote(note.id)}
                 className={cn(
                   'group p-3 rounded-lg cursor-pointer transition-colors',
-                  activeNoteId === note.id ? 'bg-primary/10' : 'hover:bg-muted/50'
+                  activeNoteId === note.id ? 'bg-primary/10' : 'hover:bg-muted/50',
+                   note.id === draggedNoteId && 'opacity-50'
                 )}
               >
                 <div className="flex justify-between items-start">

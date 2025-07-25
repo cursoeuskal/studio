@@ -124,6 +124,10 @@ export default function Home() {
     setSelectedFolderId(folderId);
     setSelectedTag(null);
   }, []);
+  
+  const handleMoveNoteToFolder = useCallback((noteId: string, folderId: string | null) => {
+    setNotes(prev => prev.map(n => n.id === noteId ? { ...n, folderId: folderId, updatedAt: new Date().toISOString() } : n));
+  }, []);
 
 
   const filteredNotes = useMemo(() => {
@@ -161,6 +165,7 @@ export default function Home() {
       onNewFolder={handleNewFolder}
       onSelectFolder={handleSelectFolder}
       onDeleteFolder={handleDeleteFolder}
+      onMoveNoteToFolder={handleMoveNoteToFolder}
     />
   );
   
