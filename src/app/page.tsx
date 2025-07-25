@@ -21,8 +21,8 @@ export default function Home() {
 
   useEffect(() => {
     try {
-      const storedNotes = localStorage.getItem('notozen-notes');
-      const storedFolders = localStorage.getItem('notozen-folders');
+      const storedNotes = localStorage.getItem('firebasenotes-notes');
+      const storedFolders = localStorage.getItem('firebasenotes-folders');
       
       if (storedFolders) {
         const parsedFolders: Folder[] = JSON.parse(storedFolders);
@@ -46,8 +46,8 @@ export default function Home() {
   useEffect(() => {
     if (!isLoading) {
       try {
-        localStorage.setItem('notozen-notes', JSON.stringify(notes));
-        localStorage.setItem('notozen-folders', JSON.stringify(folders));
+        localStorage.setItem('firebasenotes-notes', JSON.stringify(notes));
+        localStorage.setItem('firebasenotes-folders', JSON.stringify(folders));
       } catch (error) {
         console.error("Failed to save data to localStorage", error);
       }
@@ -169,7 +169,7 @@ export default function Home() {
         <div className="flex h-screen w-full items-center justify-center bg-background">
             <div className="flex items-center gap-2 text-muted-foreground">
                 <BookOpen className="w-8 h-8 text-primary animate-pulse" />
-                <h1 className="text-2xl font-bold font-headline animate-pulse">NoteZen</h1>
+                <h1 className="text-2xl font-bold font-headline animate-pulse">FirebaseNotes</h1>
             </div>
         </div>
     );

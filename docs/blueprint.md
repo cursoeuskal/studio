@@ -1,4 +1,4 @@
-# **App Name**: NoteZen
+# **App Name**: firebaseNotes
 
 ## Core Features:
 
@@ -11,11 +11,3 @@
 - AI Summarization: Use generative AI to create a summary of the current note, in markdown format, when the user presses a button.
 
 ## Style Guidelines:
-
-- Primary color: Calm blue (#6699CC) to promote focus and tranquility.
-- Background color: Light grayish-blue (#E8EEF2) to ensure comfortable readability.
-- Accent color: Muted purple (#9966CC) for interactive elements and highlights.
-- Body and headline font: 'PT Sans' (sans-serif) for a modern and readable experience.
-- Use simple, clear icons for actions like create, edit, delete, and tag.
-- Clean, minimalist layout with ample whitespace to avoid clutter.
-- Subtle fade-in animations for new notes and transitions.

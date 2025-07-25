@@ -87,7 +87,7 @@ export function NoteSidebar({
       <div className="p-4 border-b">
         <div className="flex items-center gap-2 mb-4">
             <BookOpen className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold font-headline">NoteZen</h1>
+            <h1 className="text-2xl font-bold font-headline">FirebaseNotes</h1>
         </div>
         <Button onClick={onNewNote} className="w-full">
           <FilePlus className="mr-2 h-4 w-4" />
