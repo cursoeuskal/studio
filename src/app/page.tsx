@@ -8,6 +8,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, BookOpen } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast"
+
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -18,6 +20,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
 
   useEffect(() => {
     try {
@@ -39,9 +42,14 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
+      toast({
+        title: "Error",
+        description: "Failed to load data from your browser's storage.",
+        variant: "destructive",
+      });
     }
     setIsLoading(false);
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -50,9 +58,14 @@ export default function Home() {
         localStorage.setItem('firebasenotes-folders', JSON.stringify(folders));
       } catch (error) {
         console.error("Failed to save data to localStorage", error);
+         toast({
+          title: "Error",
+          description: "Failed to save your notes. Your changes may not persist.",
+          variant: "destructive",
+        });
       }
     }
-  }, [notes, folders, isLoading]);
+  }, [notes, folders, isLoading, toast]);
   
   const handleNewNote = useCallback(() => {
     const newNote: Note = {

@@ -32,6 +32,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Input } from './ui/input';
+import { ThemeToggle } from './theme-toggle';
+
 
 interface NoteSidebarProps {
   notes: Note[];
@@ -107,9 +109,12 @@ export function NoteSidebar({
   return (
     <div className="flex h-full flex-col bg-card text-card-foreground border-r">
       <div className="p-4 border-b">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
             <BookOpen className="w-8 h-8 text-primary" />
             <h1 className="text-2xl font-bold font-headline">FirebaseNotes</h1>
+          </div>
+          <ThemeToggle />
         </div>
         <Button onClick={onNewNote} className="w-full">
           <FilePlus className="mr-2 h-4 w-4" />
