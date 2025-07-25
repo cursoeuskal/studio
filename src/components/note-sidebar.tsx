@@ -91,7 +91,7 @@ export function NoteSidebar({
         </div>
         <Button onClick={onNewNote} className="w-full">
           <FilePlus className="mr-2 h-4 w-4" />
-          New Note
+          Nueva nota
         </Button>
       </div>
       
