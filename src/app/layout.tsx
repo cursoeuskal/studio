@@ -7,7 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FirebaseNotes",
+  title: "FirebaseNotesIA",
   description: "A simple note taking app using Firebase and Next.js",
 };
 
