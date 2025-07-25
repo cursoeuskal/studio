@@ -1,5 +1,5 @@
 'use client';
-import type { Note } from '@/lib/types';
+import type { Note, Folder } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { TagInput } from './tag-input';
 import { suggestTags } from '@/ai/flows/suggest-tags';
 import { summarizeNote } from '@/ai/flows/summarize-note-flow';
 import React, { useState, useTransition, useEffect, useRef } from 'react';
-import { BookText, Loader2, Sparkles, FileQuestion } from 'lucide-react';
+import { BookText, Loader2, Sparkles, FileQuestion, Folder as FolderIcon } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import {
   Dialog,
@@ -17,14 +17,22 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ScrollArea } from './ui/scroll-area';
 
 interface NoteEditorProps {
   note: Note | null;
   onUpdateNote: (note: Partial<Note> & { id: string }) => void;
+  folders: Folder[];
 }
 
-export function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
+export function NoteEditor({ note, onUpdateNote, folders }: NoteEditorProps) {
   const { toast } = useToast();
   const [isSuggestingTags, startTagSuggestion] = useTransition();
   const [isSummarizing, startSummarization] = useTransition();
@@ -106,6 +114,12 @@ export function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
     }
   };
 
+  const handleFolderChange = (folderId: string) => {
+    if (note) {
+      onUpdateNote({ id: note.id, folderId: folderId === 'null' ? null : folderId });
+    }
+  };
+
   if (!note) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-background p-8">
@@ -121,7 +135,7 @@ export function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
   return (
     <div className="flex h-full flex-col p-4 md:p-6 bg-background">
       <Card className="flex-1 flex flex-col h-full overflow-hidden shadow-none border-none">
-        <CardHeader className="flex-row items-center justify-between p-4 border-b">
+        <CardHeader className="flex-row items-center justify-between p-4 border-b gap-4">
             <CardTitle className="flex-1">
                 <Input
                     ref={titleRef}
@@ -131,7 +145,21 @@ export function NoteEditor({ note, onUpdateNote }: NoteEditorProps) {
                     className="text-2xl font-bold border-none shadow-none focus-visible:ring-0 p-0 h-auto bg-transparent"
                 />
             </CardTitle>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+                 <Select value={note.folderId ?? 'null'} onValueChange={handleFolderChange}>
+                  <SelectTrigger className="w-[180px]">
+                    <div className="flex items-center gap-2">
+                      <FolderIcon className="h-4 w-4 text-muted-foreground" />
+                      <SelectValue placeholder="Select folder" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null">No Folder</SelectItem>
+                    {folders.map(folder => (
+                      <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button onClick={handleSummarize} disabled={isSummarizing || !note.content}>
                     {isSummarizing ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

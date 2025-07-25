@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { NoteSidebar } from '@/components/note-sidebar';
 import { NoteEditor } from '@/components/note-editor';
-import type { Note } from '@/lib/types';
+import type { Note, Folder } from '@/lib/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,10 @@ import { PanelLeft, BookOpen } from 'lucide-react';
 
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
@@ -20,6 +22,13 @@ export default function Home() {
   useEffect(() => {
     try {
       const storedNotes = localStorage.getItem('notozen-notes');
+      const storedFolders = localStorage.getItem('notozen-folders');
+      
+      if (storedFolders) {
+        const parsedFolders: Folder[] = JSON.parse(storedFolders);
+        setFolders(parsedFolders);
+      }
+
       if (storedNotes) {
         const parsedNotes: Note[] = JSON.parse(storedNotes);
         setNotes(parsedNotes);
@@ -29,7 +38,7 @@ export default function Home() {
         }
       }
     } catch (error) {
-      console.error("Failed to load notes from localStorage", error);
+      console.error("Failed to load data from localStorage", error);
     }
     setIsLoading(false);
   }, []);
@@ -38,11 +47,12 @@ export default function Home() {
     if (!isLoading) {
       try {
         localStorage.setItem('notozen-notes', JSON.stringify(notes));
+        localStorage.setItem('notozen-folders', JSON.stringify(folders));
       } catch (error) {
-        console.error("Failed to save notes to localStorage", error);
+        console.error("Failed to save data to localStorage", error);
       }
     }
-  }, [notes, isLoading]);
+  }, [notes, folders, isLoading]);
   
   const handleNewNote = useCallback(() => {
     const newNote: Note = {
@@ -52,12 +62,31 @@ export default function Home() {
       tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      folderId: selectedFolderId,
     };
     setNotes(prev => [newNote, ...prev]);
     setActiveNoteId(newNote.id);
     setSelectedTag(null);
     if(isMobile) setSidebarOpen(false);
-  }, [isMobile]);
+  }, [isMobile, selectedFolderId]);
+
+  const handleNewFolder = useCallback((folderName: string) => {
+    const newFolder: Folder = {
+      id: Date.now().toString(),
+      name: folderName,
+      createdAt: new Date().toISOString(),
+    };
+    setFolders(prev => [...prev, newFolder]);
+    setSelectedFolderId(newFolder.id);
+  }, []);
+
+  const handleDeleteFolder = useCallback((folderId: string) => {
+    setFolders(prev => prev.filter(f => f.id !== folderId));
+    setNotes(prev => prev.map(n => n.folderId === folderId ? { ...n, folderId: null } : n));
+    if (selectedFolderId === folderId) {
+      setSelectedFolderId(null);
+    }
+  }, [selectedFolderId]);
 
   const handleSelectNote = useCallback((id: string) => {
     setActiveNoteId(id);
@@ -85,17 +114,27 @@ export default function Home() {
 
   const handleSelectTag = useCallback((tag: string | null) => {
     setSelectedTag(tag);
+    setSelectedFolderId(null); 
     const notesForTag = tag ? notes.filter(note => note.tags.includes(tag)) : notes;
     const sortedNotes = [...notesForTag].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     setActiveNoteId(sortedNotes.length > 0 ? sortedNotes[0].id : null);
-
   }, [notes]);
+  
+  const handleSelectFolder = useCallback((folderId: string | null) => {
+    setSelectedFolderId(folderId);
+    setSelectedTag(null);
+  }, []);
+
 
   const filteredNotes = useMemo(() => {
-    const sortedNotes = [...notes].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    if (!selectedTag) return sortedNotes;
-    return sortedNotes.filter(note => note.tags.includes(selectedTag));
-  }, [notes, selectedTag]);
+    let notesToFilter = [...notes];
+    if (selectedFolderId) {
+      notesToFilter = notesToFilter.filter(note => note.folderId === selectedFolderId);
+    } else if (selectedTag) {
+      notesToFilter = notesToFilter.filter(note => note.tags.includes(selectedTag));
+    }
+    return notesToFilter.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  }, [notes, selectedTag, selectedFolderId]);
 
   const activeNote = useMemo(() => {
     return notes.find(note => note.id === activeNoteId) || null;
@@ -110,13 +149,18 @@ export default function Home() {
   const sidebarContent = (
     <NoteSidebar
       notes={filteredNotes}
+      folders={folders}
       tags={allTags}
       activeNoteId={activeNoteId}
       selectedTag={selectedTag}
+      selectedFolderId={selectedFolderId}
       onNewNote={handleNewNote}
       onSelectNote={handleSelectNote}
       onDeleteNote={handleDeleteNote}
       onSelectTag={handleSelectTag}
+      onNewFolder={handleNewFolder}
+      onSelectFolder={handleSelectFolder}
+      onDeleteFolder={handleDeleteFolder}
     />
   );
   
@@ -150,7 +194,11 @@ export default function Home() {
         </div>
       )}
       <div className="flex-1 h-full overflow-hidden">
-        <NoteEditor note={activeNote} onUpdateNote={handleUpdateNote} />
+        <NoteEditor 
+          note={activeNote} 
+          onUpdateNote={handleUpdateNote}
+          folders={folders} 
+        />
       </div>
     </main>
   );

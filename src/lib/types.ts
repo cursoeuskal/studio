@@ -5,4 +5,11 @@ export type Note = {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  folderId: string | null;
+};
+
+export type Folder = {
+  id: string;
+  name: string;
+  createdAt: string;
 };
